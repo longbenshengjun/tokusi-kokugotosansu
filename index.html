@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ゲームメニュー</title>
+
+  <!-- iOSアプリ風表示（アドレスバー非表示） -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <!-- ホーム画面アイコン -->
+  <link rel="apple-touch-icon" href="icon.png">
+
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      text-align: center;
+      padding: 60px 20px;
+      background: #ffffff;
+    }
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 50px;
+      color: #333;
+    }
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+      align-items: center;
+    }
+    a {
+      display: block;
+      padding: 22px 35px;
+      font-size: 1.8rem;
+      font-weight: bold;
+      text-decoration: none;
+      color: #fff;
+      border-radius: 14px;
+      width: 320px;
+      box-shadow: 2px 4px 8px rgba(0,0,0,0.2);
+      transition: 0.25s;
+    }
+    /* こくごボタン（赤） */
+    .kokugo {
+      background: #f85a5a;
+    }
+    .kokugo:hover {
+      background: #e14b4b;
+      transform: scale(1.05);
+    }
+    /* さんすうボタン（青） */
+    .sansu {
+      background: #4a90e2;
+    }
+    .sansu:hover {
+      background: #3578c6;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <h1>ゲームメニュー</h1>
+
+  <div class="menu">
+    <a href="kokugo/index.html" class="kokugo">✏️ こくご</a>
+    <a href="sansu/index.html" class="sansu">🔢 さんすう</a>
+  </div>
+</body>
+</html>
