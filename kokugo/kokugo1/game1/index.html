@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>ひらがなさがしゲーム</title>
+  <style>
+    body {
+      font-family: 'UDデジタル教科書体', 'Noto Sans JP', sans-serif;
+      text-align: center;
+      background-color: #fdf6e3;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      font-size: 2em;
+      margin-top: 1em;
+    }
+    .screen {
+      display: none;
+      padding: 20px;
+    }
+    .active {
+      display: block;
+    }
+    .button {
+      font-size: 1.5em;
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      background-color: #a5d6a7;
+      cursor: pointer;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+      justify-items: center;
+    }
+    .char {
+      font-size: 2em;
+      padding: 10px;
+      background: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 50px;
+      height: 50px;
+      line-height: 50px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .feedback {
+      font-size: 3em;
+      margin-top: 20px;
+      height: 1.5em;
+    }
+    .score {
+      font-size: 2em;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="start-screen" class="screen active">
+    <h1>ひらがなさがしゲーム</h1>
+    <button class="button" onclick="startGame('easy')">かんたん</button>
+    <button class="button" onclick="startGame('normal')">ふつう</button>
+  </div>
+
+  <div id="game-screen" class="screen">
+    <h1 id="question-number">もんだい 1 / 10</h1>
+    <div class="grid" id="char-grid"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <div id="result-screen" class="screen">
+    <h1>けっか</h1>
+    <div class="score" id="final-score"></div>
+  </div>
+
+  <audio id="correct-sound" src="sounds/correct.mp3"></audio>
+
+  <script>
+    const easyChars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん".split('');
+    const similarPairs = [
+      ["わ", "ね"], ["く", "へ"], ["し", "も"], ["き", "さ"], ["め", "ぬ"],
+      ["ろ", "る"], ["ち", "つ"], ["た", "に"], ["あ", "お"], ["い", "こ"],
+      ["う", "つ"], ["は", "な"], ["は", "ほ"]
+    ];
+    let difficulty = 'easy';
+    let currentQuestion = 0;
+    let score = 0;
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function startGame(level) {
+      difficulty = level;
+      currentQuestion = 0;
+      score = 0;
+      showScreen('game-screen');
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      document.getElementById('feedback').textContent = '';
+      if (currentQuestion >= 10) {
+        endGame();
+        return;
+      }
+      document.getElementById('question-number').textContent = `もんだい ${currentQuestion + 1} / 10`;
+
+      let dummy, correct;
+      if (difficulty === 'easy') {
+        dummy = easyChars[Math.floor(Math.random() * easyChars.length)];
+        do {
+          correct = easyChars[Math.floor(Math.random() * easyChars.length)];
+        } while (dummy === correct);
+      } else {
+        const pair = similarPairs[Math.floor(Math.random() * similarPairs.length)];
+        [dummy, correct] = Math.random() < 0.5 ? pair : [pair[1], pair[0]];
+      }
+
+      const chars = new Array(29).fill(dummy);
+      const answerIndex = Math.floor(Math.random() * 30);
+      chars.splice(answerIndex, 0, correct);
+
+      const grid = document.getElementById('char-grid');
+      grid.innerHTML = '';
+      chars.forEach((ch, i) => {
+        const div = document.createElement('div');
+        div.className = 'char';
+        div.textContent = ch;
+        div.onclick = () => handleAnswer(i === answerIndex);
+        grid.appendChild(div);
+      });
+    }
+
+    function handleAnswer(correctAnswer) {
+      const feedback = document.getElementById('feedback');
+      if (correctAnswer) {
+        score += 10;
+        document.getElementById('correct-sound').play();
+      } else {
+        feedback.textContent = "？";
+      }
+      currentQuestion++;
+      setTimeout(nextQuestion, 1000);
+    }
+
+    function endGame() {
+      document.getElementById('final-score').textContent = `あなたのてんすうは ${score} てん`;
+      showScreen('result-screen');
+      setTimeout(() => showScreen('start-screen'), 4000);
+    }
+  </script>
+</body>
+</html>
