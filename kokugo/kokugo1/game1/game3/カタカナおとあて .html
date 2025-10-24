@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>カタカナ音あてゲーム</title>
+  <style>
+    body {
+      font-family: "UD デジタル 教科書体 NK-R", "Noto Sans JP", sans-serif;
+      text-align: center;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    #modeSelect button, #options button, #controls button {
+      font-size: 20px;
+      margin: 5px;
+      padding: 10px 20px;
+    }
+    #question {
+      font-size: 24px;
+      margin: 20px;
+    }
+    .result {
+      font-size: 40px;
+      margin-top: 20px;
+    }
+    .hanamaru {
+      width: 100px;
+      height: auto;
+      display: block;
+      margin: 10px auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>カタカナおとあてゲーム</h1>
+  <div id="modeSelect">
+    <button onclick="selectMode('ア行')">ア行</button>
+    <button onclick="selectMode('カ行')">カ行</button>
+    <button onclick="selectMode('サ行')">サ行</button>
+    <button onclick="selectMode('タ行')">タ行</button>
+    <button onclick="selectMode('ナ行')">ナ行</button>
+    <button onclick="selectMode('ハ行')">ハ行</button>
+    <button onclick="selectMode('マ行')">マ行</button>
+    <button onclick="selectMode('ヤ行')">ヤ行</button>
+    <button onclick="selectMode('ラ行')">ラ行</button>
+    <button onclick="selectMode('ワ行')">ワ行</button>
+    <button onclick="selectMode('全体')">全体モード</button>
+    <button onclick="selectMode('してぃうぃはさん')">してぃうぃはさん</button>
+    <button onclick="selectMode('ひがしざわゆわ')">ひがしざわゆわ</button>
+    <button onclick="selectMode('うえはらあさひ')">うえはらあさひ</button>
+  </div>
+
+  <div id="game" style="display:none;">
+    <div id="question">どのおと？</div>
+    <div id="controls">
+      <button onclick="playQuestion()">おとをきく</button>
+      <button onclick="replayQuestion()">もういちど</button>
+    </div>
+    <div id="options"></div>
+    <div class="result" id="resultDisplay"></div>
+    <img src="img/hanamaru.png" id="hanamaru" class="hanamaru" style="display:none;">
+  </div>
+
+  <script>
+    const gyouMap = {
+      "ア行": ["ア", "イ", "ウ", "エ", "オ"],
+      "カ行": ["カ", "キ", "ク", "ケ", "コ"],
+      "サ行": ["サ", "シ", "ス", "セ", "ソ"],
+      "タ行": ["タ", "チ", "ツ", "テ", "ト"],
+      "ナ行": ["ナ", "ニ", "ヌ", "ネ", "ノ"],
+      "ハ行": ["ハ", "ヒ", "フ", "ヘ", "ホ"],
+      "マ行": ["マ", "ミ", "ム", "メ", "モ"],
+      "ヤ行": ["ヤ", "ユ", "ヨ"],
+      "ラ行": ["ラ", "リ", "ル", "レ", "ロ"],
+      "ワ行": ["ワ", "ヲ", "ン"],
+      "してぃうぃはさん": ["シ", "ティ", "ウィ", "ハ", "サ", "ン"],
+      "ひがしざわゆわ": ["ヒ", "ガ", "シ", "ザ", "ワ", "ユ"],
+      "うえはらあさひ": ["ウ", "エ", "ハ", "ラ", "ア", "サ", "ヒ"]
+    };
+
+    const allKana = Object.values(gyouMap).flat();
+    let currentList = [];
+    let currentKana = "";
+    let currentMode = "";
+    let currentAudio;
+
+    function selectMode(mode) {
+      currentMode = mode;
+      currentList = (mode === "全体") ? [...allKana] : [...gyouMap[mode]];
+      document.getElementById('modeSelect').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+      nextQuestion(true);
+    }
+
+    function nextQuestion(autoPlay = false) {
+      if (currentList.length === 0) {
+        document.getElementById('game').style.display = 'none';
+        document.getElementById('modeSelect').style.display = 'block';
+        return;
+      }
+      document.getElementById('resultDisplay').textContent = "";
+      document.getElementById('hanamaru').style.display = 'none';
+
+      const index = Math.floor(Math.random() * currentList.length);
+      currentKana = currentList.splice(index, 1)[0];
+
+      currentAudio = new Audio(`sounds/${toHiragana(currentKana)}.mp3`);
+
+      const options = shuffle([currentKana, ...getRandomKana(6, currentKana)]);
+      const optionsDiv = document.getElementById('options');
+      optionsDiv.innerHTML = "";
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt;
+        btn.onclick = () => checkAnswer(opt);
+        optionsDiv.appendChild(btn);
+      });
+
+      if (autoPlay) {
+        currentAudio.play();
+      }
+    }
+
+    function playQuestion() {
+      if (currentAudio) currentAudio.play();
+    }
+
+    function replayQuestion() {
+      if (currentAudio) currentAudio.play();
+    }
+
+    function checkAnswer(answer) {
+      if (answer === currentKana) {
+        const seikai = new Audio('sounds/pinpon.mp3');
+        seikai.play();
+        document.getElementById('resultDisplay').textContent = "〇";
+        document.getElementById('hanamaru').style.display = 'block';
+        setTimeout(() => nextQuestion(true), 1500);
+      } else {
+        document.getElementById('resultDisplay').textContent = "？";
+      }
+    }
+
+    function getRandomKana(n, exclude) {
+      const set = new Set();
+      while (set.size < n) {
+        const kana = allKana[Math.floor(Math.random() * allKana.length)];
+        if (kana !== exclude) set.add(kana);
+      }
+      return Array.from(set);
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function toHiragana(katakana) {
+      return katakana.replace(/ティ|ディ|ウィ|./g, function(char) {
+        const map = {
+          'ア':'あ','イ':'い','ウ':'う','エ':'え','オ':'お',
+          'カ':'か','キ':'き','ク':'く','ケ':'け','コ':'こ',
+          'サ':'さ','シ':'し','ス':'す','セ':'せ','ソ':'そ',
+          'タ':'た','チ':'ち','ツ':'つ','テ':'て','ト':'と',
+          'ナ':'な','ニ':'に','ヌ':'ぬ','ネ':'ね','ノ':'の',
+          'ハ':'は','ヒ':'ひ','フ':'ふ','ヘ':'へ','ホ':'ほ',
+          'マ':'ま','ミ':'み','ム':'む','メ':'め','モ':'も',
+          'ヤ':'や','ユ':'ゆ','ヨ':'よ',
+          'ラ':'ら','リ':'り','ル':'る','レ':'れ','ロ':'ろ',
+          'ワ':'わ','ヲ':'を','ン':'ん',
+          'ガ':'が','ギ':'ぎ','グ':'ぐ','ゲ':'げ','ゴ':'ご',
+          'ザ':'ざ','ジ':'じ','ズ':'ず','ゼ':'ぜ','ゾ':'ぞ',
+          'ダ':'だ','ヂ':'ぢ','ヅ':'づ','デ':'で','ド':'ど',
+          'バ':'ば','ビ':'び','ブ':'ぶ','ベ':'べ','ボ':'ぼ',
+          'パ':'ぱ','ピ':'ぴ','プ':'ぷ','ペ':'ぺ','ポ':'ぽ',
+          'ティ':'てぃ','ディ':'でぃ','ウィ':'うぃ'
+        };
+        return map[char] || char;
+      });
+    }
+  </script>
+</body>
+</html>
