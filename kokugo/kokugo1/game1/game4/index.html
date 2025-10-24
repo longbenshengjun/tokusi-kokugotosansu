@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ことばあてゲーム</title>
+  <style>
+    body {
+      font-family: "Kosugi Maru", sans-serif;
+      text-align: center;
+      background: #fefefe;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2rem;
+    }
+    #image {
+      width: 200px;
+      height: 200px;
+      margin: 20px auto;
+      border: 2px solid #ccc;
+    }
+    .choices {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .choice {
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      background: #e0f0ff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #result {
+      font-size: 2rem;
+      margin-top: 20px;
+    }
+    #score {
+      margin-top: 30px;
+      font-size: 1.5rem;
+    }
+    #start {
+      font-size: 1.5rem;
+      padding: 10px 30px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+</head>
+<body>
+  <h1>えを見て ことばを えらぼう！</h1>
+  <div id="image"></div>
+  <div class="choices" id="choices"></div>
+  <div id="result"></div>
+  <div id="score" class="hidden"></div>
+  <button id="start">ゲームをはじめる</button>
+
+  <audio id="correctSound" src="sounds/correct.mp3"></audio>
+
+  <script>
+    const words = ["おに", "わに", "いす", "せみ", "もも", "もち", "こま", "あめ", "あお", "あか", "くろ", "まめ", "くま", "ねこ", "はな", "みみ", "くち", "とり", "ふね", "ほし", "ほね", "かに", "うま", "さる", "かさ", "いし", "くも", "あり", "まる", "やま", "うし", "いえ", "ほん", "そら", "よる", "えい", "かい", "かき", "かみ", "けん", "さい", "いぬ", "くり", "はち", "いか", "ひよこ", "あいす", "すいか", "ほたる", "ほうき", "うきわ", "うちわ", "さいふ", "きつね", "といれ", "はさみ", "つくえ", "とまと", "さかな", "いるか", "れもん", "とけい", "かえる", "かめら", "たぬき", "きりん", "こあら", "まくら", "ちくわ", "くるま", "けいと", "しかく", "きいろ", "やかん", "めろん", "みかん", "たいこ", "たいや", "きのこ", "さくら", "つみき", "もやし", "たおる", "つくし", "ふとん", "ここあ", "かかし", "おくら", "ますく", "まいく"];
+
+    let questions = [];
+    let currentQuestion = 0;
+    let score = 0;
+
+    const imageDiv = document.getElementById("image");
+    const choicesDiv = document.getElementById("choices");
+    const resultDiv = document.getElementById("result");
+    const scoreDiv = document.getElementById("score");
+    const startBtn = document.getElementById("start");
+    const correctSound = document.getElementById("correctSound");
+
+    function shuffle(arr) {
+      return arr.sort(() => Math.random() - 0.5);
+    }
+
+    function getImageSrc(word) {
+      return `images/${word}.jpg`;
+    }
+
+    function startGame() {
+      questions = shuffle(words).slice(0, 20);
+      currentQuestion = 0;
+      score = 0;
+      scoreDiv.classList.add("hidden");
+      startBtn.classList.add("hidden");
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      if (currentQuestion >= questions.length) {
+        scoreDiv.textContent = `おわり！ てんすう：${score} / 100てん`;
+        scoreDiv.classList.remove("hidden");
+        startBtn.textContent = "もういちどあそぶ";
+        startBtn.classList.remove("hidden");
+        imageDiv.innerHTML = "";
+        choicesDiv.innerHTML = "";
+        return;
+      }
+
+      const correct = questions[currentQuestion];
+      const options = shuffle([correct, ...shuffle(words.filter(w => w !== correct)).slice(0, 4)]);
+
+      imageDiv.innerHTML = `<img src="${getImageSrc(correct)}" alt="${correct}" style="width:100%; height:100%; object-fit:contain;">`;
+      choicesDiv.innerHTML = "";
+      resultDiv.textContent = "";
+
+      options.forEach(word => {
+        const btn = document.createElement("button");
+        btn.textContent = word;
+        btn.className = "choice";
+        btn.onclick = () => checkAnswer(word, correct);
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct) {
+      if (selected === correct) {
+        correctSound.play();
+        resultDiv.textContent = "〇";
+        resultDiv.style.color = "red";
+        score += 5;
+      } else {
+        resultDiv.textContent = "？";
+        resultDiv.style.color = "black";
+      }
+      currentQuestion++;
+      setTimeout(nextQuestion, 1000);
+    }
+
+    startBtn.onclick = startGame;
+  </script>
+</body>
+</html>
