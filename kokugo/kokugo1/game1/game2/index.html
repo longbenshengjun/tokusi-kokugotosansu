@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ひらがな出題</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      text-align: center;
+      padding: 2rem;
+      background: #fdfdfd;
+    }
+    .menu, .display {
+      margin-top: 2rem;
+    }
+    button {
+      margin: 0.5rem;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 8px;
+      background-color: #87cefa;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #6495ed;
+    }
+    #kanaDisplay {
+      font-size: 5rem;
+      margin-top: 3rem;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>ひらがなクイズ</h1>
+
+  <div class="menu" id="menu">
+    <button onclick="startGame('a')">あ行</button>
+    <button onclick="startGame('ka')">か行</button>
+    <button onclick="startGame('sa')">さ行</button>
+    <button onclick="startGame('ta')">た行</button>
+    <button onclick="startGame('na')">な行</button>
+    <button onclick="startGame('ha')">は行</button>
+    <button onclick="startGame('ma')">ま行</button>
+    <button onclick="startGame('ya')">や行</button>
+    <button onclick="startGame('ra')">ら行</button>
+    <button onclick="startGame('wa')">わ行</button>
+    <button onclick="startGame('all')">ぜんぶ</button>
+    <br><br>
+    <button onclick="startGame('set1')">してぃうぃはさん</button>
+    <button onclick="startGame('set2')">ひがしざわゆわ</button>
+    <button onclick="startGame('set3')">うえはらあさひ</button>
+  </div>
+
+  <div class="display hidden" id="display">
+    <div id="kanaDisplay">?</div>
+    <button onclick="showNext()">つぎへ</button>
+  </div>
+
+  <script>
+    const kanaGroups = {
+      a: ['あ', 'い', 'う', 'え', 'お'],
+      ka: ['か', 'き', 'く', 'け', 'こ'],
+      sa: ['さ', 'し', 'す', 'せ', 'そ'],
+      ta: ['た', 'ち', 'つ', 'て', 'と'],
+      na: ['な', 'に', 'ぬ', 'ね', 'の'],
+      ha: ['は', 'ひ', 'ふ', 'へ', 'ほ'],
+      ma: ['ま', 'み', 'む', 'め', 'も'],
+      ya: ['や', 'ゆ', 'よ'],
+      ra: ['ら', 'り', 'る', 'れ', 'ろ'],
+      wa: ['わ', 'を', 'ん'],
+      set1: ['し', 'てぃ', 'うぃ', 'は', 'さ', 'ん'],
+      set2: ['ひ', 'が', 'し', 'ざ', 'わ', 'ゆ', 'わ'],
+      set3: ['う', 'え', 'は', 'ら', 'あ', 'さ', 'ひ'],
+    };
+
+    let currentKana = [];
+    let currentIndex = 0;
+
+    function startGame(group) {
+      if (group === 'all') {
+        currentKana = Object.values(kanaGroups).flat();
+      } else {
+        currentKana = [...kanaGroups[group]];
+      }
+
+      shuffle(currentKana);
+      currentIndex = 0;
+      document.getElementById('menu').classList.add('hidden');
+      document.getElementById('display').classList.remove('hidden');
+      showKana();
+    }
+
+    function showKana() {
+      document.getElementById('kanaDisplay').textContent = currentKana[currentIndex];
+    }
+
+    function showNext() {
+      currentIndex++;
+      if (currentIndex < currentKana.length) {
+        showKana();
+      } else {
+        // 終了 → メニューに戻る
+        document.getElementById('display').classList.add('hidden');
+        document.getElementById('menu').classList.remove('hidden');
+        document.getElementById('kanaDisplay').textContent = '?';
+      }
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+  </script>
+</body>
+</html>
