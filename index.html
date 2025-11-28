@@ -2,69 +2,81 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ゲームメニュー</title>
-
-  <!-- iOSアプリ風表示（アドレスバー非表示） -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-  <!-- ホーム画面アイコン -->
-  <link rel="apple-touch-icon" href="icon.png">
+  <title>ゲーム進行</title>
 
   <style>
     body {
       font-family: 'Noto Sans JP', sans-serif;
       text-align: center;
-      padding: 60px 20px;
-      background: #ffffff;
+      padding: 60px;
+    }
+    .start-btn {
+      padding: 20px 50px;
+      font-size: 2.4rem;
+      background: #00b894;
+      color: white;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+    }
+    .start-btn:hover {
+      background: #009874;
     }
     h1 {
-      font-size: 3rem;
-      margin-bottom: 50px;
-      color: #333;
-    }
-    .menu {
-      display: flex;
-      flex-direction: column;
-      gap: 25px;
-      align-items: center;
-    }
-    a {
-      display: block;
-      padding: 22px 35px;
-      font-size: 1.8rem;
-      font-weight: bold;
-      text-decoration: none;
-      color: #fff;
-      border-radius: 14px;
-      width: 320px;
-      box-shadow: 2px 4px 8px rgba(0,0,0,0.2);
-      transition: 0.25s;
-    }
-    /* こくごボタン（赤） */
-    .kokugo {
-      background: #f85a5a;
-    }
-    .kokugo:hover {
-      background: #e14b4b;
-      transform: scale(1.05);
-    }
-    /* さんすうボタン（青） */
-    .sansu {
-      background: #4a90e2;
-    }
-    .sansu:hover {
-      background: #3578c6;
-      transform: scale(1.05);
+      font-size: 2.6rem;
+      margin-bottom: 30px;
     }
   </style>
 </head>
-<body>
-  <h1>ゲームメニュー</h1>
 
-  <div class="menu">
-    <a href="kokugo/index.html" class="kokugo">✏️ こくご</a>
-    <a href="sansu/index.html" class="sansu">🔢 さんすう</a>
+<body>
+
+  <h1 id="title">ゲーム</h1>
+  <div id="content">
+    <button class="start-btn" onclick="startGame()">▶ はじめる</button>
   </div>
+
+<script>
+  // URL パラメータ ?step=番号 を取得
+  const params = new URLSearchParams(window.location.search);
+  let step = Number(params.get("step") || 0);
+
+  // ゲームのパス
+  const games = [
+    "kokugo/game1/index.html",
+    "kokugo/game2/index.html",
+    "kokugo/game3/index.html",
+    "kokugo/game4/index.html"
+  ];
+
+  // はじめるボタン
+  function startGame() {
+    step = 1;
+    goNext();
+  }
+
+  // 次のゲームへ自動進行
+  function goNext() {
+    if (step >= 1 && step <= 4) {
+      // メッセージを一瞬だけ表示
+      document.getElementById("title").innerText = step + "つめのゲームへようこそ";
+      document.getElementById("content").innerHTML = "よみこみちゅう…";
+
+      // 次のゲームへ移動
+      const url = games[step - 1] + "?step=" + step;
+      window.location.href = url;
+    } else {
+      // すべて完了
+      document.getElementById("title").innerText = "おしまいです";
+      document.getElementById("content").innerHTML = "<h2>がんばったね！</h2>";
+    }
+  }
+
+  // すでに ?step=2 などで戻ってきた場合は自動で続きへ
+  if (step >= 2) {
+    goNext();
+  }
+</script>
+
 </body>
 </html>
