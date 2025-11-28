@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>かずあてゲーム</title>
+  <style>
+    body {
+      font-family: "Kosugi Maru", "Yu Gothic", sans-serif;
+      background-color: #fef8f5;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1, p {
+      color: #444;
+    }
+
+    button {
+      font-size: 24px;
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      background-color: #cce5ff;
+      color: #333;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #b2d8f7;
+    }
+
+    #image-area img {
+      width: 60px;
+      margin: 5px;
+    }
+
+    #number-buttons button {
+      background-color: #ffd6e7;
+    }
+
+    #number-buttons button:hover {
+      background-color: #fcbad3;
+    }
+
+    #result {
+      font-size: 36px;
+      margin-top: 20px;
+    }
+
+    .correct {
+      color: red;
+    }
+
+    .wrong {
+      color: black;
+    }
+
+    #start-screen {
+      margin-top: 50px;
+    }
+  </style>
+</head>
+<body>
+  <div id="start-screen">
+    <h1>かずあてゲーム</h1>
+    <p>出題のはんいをえらんでね</p>
+    <button onclick="startGame(5)">１〜５</button>
+    <button onclick="startGame(10)">１〜１０</button>
+  </div>
+
+  <div id="game-screen" style="display: none;">
+    <div id="image-area"></div>
+    <div id="number-buttons"></div>
+    <div id="result"></div>
+  </div>
+
+  <audio id="correct-sound" src="sounds/correct.mp3" preload="auto"></audio>
+
+  <script>
+    let currentQuestion = 0;
+    const totalQuestions = 10;
+    let maxNumber = 5;
+    let questionList = [];
+    let waitingForCorrect = false;
+
+    function startGame(max) {
+      maxNumber = max;
+      currentQuestion = 0;
+      questionList = generateQuestionList(maxNumber, totalQuestions);
+      document.getElementById("start-screen").style.display = "none";
+      document.getElementById("game-screen").style.display = "block";
+      generateButtons(maxNumber);
+      nextQuestion();
+    }
+
+    function generateQuestionList(max, count) {
+      const list = [];
+      let last = 0;
+      for (let i = 0; i < count; i++) {
+        let num;
+        do {
+          num = Math.floor(Math.random() * max) + 1;
+        } while (num === last);
+        list.push(num);
+        last = num;
+      }
+      return list;
+    }
+
+    function nextQuestion() {
+      if (currentQuestion >= totalQuestions) {
+        showFinalMessage();
+        return;
+      }
+
+      const correctCount = questionList[currentQuestion];
+      currentQuestion++;
+
+      const imageArea = document.getElementById("image-area");
+      imageArea.innerHTML = "";
+      for (let i = 0; i < correctCount; i++) {
+        const img = document.createElement("img");
+        img.src = "images/item.png";
+        img.alt = "画像";
+        imageArea.appendChild(img);
+      }
+
+      imageArea.dataset.correct = correctCount;
+      document.getElementById("result").textContent = "";
+      waitingForCorrect = true;
+    }
+
+    function generateButtons(max) {
+      const buttonArea = document.getElementById("number-buttons");
+      buttonArea.innerHTML = "";
+      for (let i = 1; i <= max; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.onclick = () => checkAnswer(i);
+        buttonArea.appendChild(btn);
+      }
+    }
+
+    function checkAnswer(selected) {
+      if (!waitingForCorrect) return;
+
+      const result = document.getElementById("result");
+      const correctCount = Number(document.getElementById("image-area").dataset.correct);
+
+      if (selected === correctCount) {
+        document.getElementById("correct-sound").play();
+        result.textContent = "〇";
+        result.className = "correct";
+        waitingForCorrect = false;
+        setTimeout(nextQuestion, 1000);
+      } else {
+        result.textContent = "？";
+        result.className = "wrong";
+      }
+    }
+
+    function showFinalMessage() {
+      document.getElementById("image-area").innerHTML = "";
+      document.getElementById("number-buttons").innerHTML = "";
+      const result = document.getElementById("result");
+      result.textContent = "がんばったね（＾＾）";
+      result.className = "correct";
+
+      setTimeout(() => {
+        document.getElementById("game-screen").style.display = "none";
+        document.getElementById("start-screen").style.display = "block";
+        result.textContent = "";
+      }, 4000);
+    }
+  </script>
+</body>
+</html>

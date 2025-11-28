@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>10を作るゲーム</title>
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      text-align: center;
+      background-color: #f0f8ff;
+      margin: 0;
+      padding: 0;
+    }
+    #startScreen, #gameScreen {
+      display: none;
+      padding: 50px;
+    }
+    #startScreen {
+      display: block;
+    }
+    button {
+      font-size: 24px;
+      padding: 10px 30px;
+      cursor: pointer;
+    }
+    .card-container, .slot-container {
+      display: flex;
+      justify-content: center;
+      margin: 20px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .card, .slot {
+      width: 60px;
+      height: 80px;
+      line-height: 80px;
+      font-size: 24px;
+      background-color: #fff;
+      border: 2px solid #333;
+      border-radius: 8px;
+      user-select: none;
+    }
+    .card {
+      cursor: pointer;
+    }
+    .slot {
+      background-color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      position: relative;
+    }
+    .slot.filled {
+      background-color: #c8e6c9;
+    }
+    .slot .card {
+      width: 50px;
+      height: 35px;
+      line-height: 35px;
+      font-size: 20px;
+      cursor: default;
+    }
+    .mark {
+      position: absolute;
+      bottom: -25px;
+      font-size: 24px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <div id="startScreen">
+    <button onclick="startGame()">スタート</button>
+  </div>
+
+  <div id="gameScreen">
+    <div class="card-container" id="cardContainer"></div>
+    <div class="slot-container" id="slotContainer"></div>
+    <p id="message" style="font-size: 20px; color: red;"></p>
+  </div>
+
+  <audio id="correctSound" src="correct.mp3"></audio>
+  <audio id="wrongSound" src="wrong.mp3"></audio>
+
+  <script>
+    const correctPairs = [[1,9],[2,8],[3,7],[4,6],[5,5]];
+    let usedPairs = [];
+    let selectedCards = [];
+
+    function startGame() {
+      document.getElementById('startScreen').style.display = 'none';
+      document.getElementById('gameScreen').style.display = 'block';
+      initGame();
+    }
+
+    function initGame() {
+      const cardContainer = document.getElementById('cardContainer');
+      const slotContainer = document.getElementById('slotContainer');
+      const message = document.getElementById('message');
+      cardContainer.innerHTML = '';
+      slotContainer.innerHTML = '';
+      message.textContent = '';
+      usedPairs = [];
+      selectedCards = [];
+
+      for (let i = 1; i <= 9; i++) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.textContent = i;
+        card.dataset.value = i;
+        card.addEventListener('click', handleCardClick);
+        cardContainer.appendChild(card);
+      }
+
+      for (let i = 0; i < 5; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'slot';
+        slot.dataset.index = i;
+        slotContainer.appendChild(slot);
+      }
+    }
+
+    function handleCardClick(e) {
+      const card = e.currentTarget;
+      const value = parseInt(card.dataset.value);
+
+      if (selectedCards.length < 2) {
+        selectedCards.push(value);
+        card.style.border = '2px solid blue';
+
+        if (selectedCards.length === 2) {
+          const val1 = selectedCards[0];
+          const val2 = selectedCards[1];
+          const pair = [Math.min(val1, val2), Math.max(val1, val2)];
+
+          const slot = document.querySelector('.slot:not(.filled)');
+          if (!slot) return;
+
+          const clone1 = createCardClone(val1);
+          const clone2 = createCardClone(val2);
+          slot.appendChild(clone1);
+          slot.appendChild(clone2);
+
+          if (val1 + val2 === 10 && !usedPairs.some(p => p[0] === pair[0] && p[1] === pair[1])) {
+            usedPairs.push(pair);
+            slot.classList.add('filled');
+            document.getElementById('correctSound').play();
+
+            const mark = document.createElement('div');
+            mark.className = 'mark';
+            mark.textContent = '〇';
+            slot.appendChild(mark);
+
+            if (usedPairs.length === 5) {
+              setTimeout(() => location.reload(), 4000);
+            }
+          } else {
+            document.getElementById('wrongSound').play();
+            document.getElementById('message').textContent = '？';
+            setTimeout(() => {
+              slot.innerHTML = '';
+              document.getElementById('message').textContent = '';
+            }, 1000);
+          }
+
+          // リセット
+          document.querySelectorAll('.card').forEach(c => c.style.border = '');
+          selectedCards = [];
+        }
+      }
+    }
+
+    function createCardClone(value) {
+      const clone = document.createElement('div');
+      clone.className = 'card';
+      clone.textContent = value;
+      clone.draggable = false;
+      return clone;
+    }
+  </script>
+</body>
+</html>
