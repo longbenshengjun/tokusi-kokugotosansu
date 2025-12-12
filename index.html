@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>音楽記号クイズ</title>
+  <style>
+    body {
+      font-family: "Yasashisa Gothic", sans-serif;
+      background: #fefefe;
+      text-align: center;
+      padding: 20px;
+    }
+
+    @font-face {
+      font-family: "Yasashisa Gothic";
+      src: url("https://fonts.gstatic.com/s/zenkaku_gothic_new/v1/UdRz2s2ekxSIVl4OGNfmGpLjYkz3.woff2") format("woff2");
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .active {
+      display: block;
+    }
+
+    .btn {
+      font-size: 1.5rem;
+      margin: 10px;
+      padding: 15px 30px;
+      border-radius: 12px;
+      border: none;
+      background: #a0c4ff;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #90dbf4;
+    }
+
+    img {
+      max-width: 300px;
+      margin: 20px auto;
+    }
+
+    .choices {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .choice {
+      background: #e0f7fa;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .result {
+      font-size: 3rem;
+      color: red;
+      margin: 10px;
+    }
+
+    #score-display {
+      font-size: 1.5rem;
+      color: #333;
+      margin-top: 10px;
+    }
+
+    #final-score {
+      font-size: 2rem;
+      margin-top: 20px;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>音楽記号クイズ</h1>
+
+  <!-- スタート画面 -->
+  <div id="start-screen" class="screen active">
+    <button class="btn" onclick="startQuiz('treble')">と音記号</button>
+    <button class="btn" onclick="startQuiz('bass')">へ音記号</button>
+    <button class="btn" onclick="startQuiz('symbols')">記号</button>
+  </div>
+
+  <!-- クイズ画面 -->
+  <div id="quiz-screen" class="screen">
+    <img id="question-img" src="" alt="問題画像">
+    <div class="choices" id="choices"></div>
+    <div id="score-display">点数：0 点</div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <!-- 結果画面 -->
+  <div id="score-screen" class="screen">
+    <h2 id="final-score">〇点を獲得しました！</h2>
+  </div>
+
+  <!-- 正解音 -->
+  <audio id="correct-sound" src="sounds/correct.mp3"></audio>
+
+  <script>
+    const questionImg = document.getElementById('question-img');
+    const choicesDiv = document.getElementById('choices');
+    const resultDiv = document.getElementById('result');
+    const scoreDisplay = document.getElementById('score-display');
+    const finalScoreDisplay = document.getElementById('final-score');
+    const correctSound = document.getElementById('correct-sound');
+
+    const screens = {
+      start: document.getElementById('start-screen'),
+      quiz: document.getElementById('quiz-screen'),
+      score: document.getElementById('score-screen')
+    };
+
+    // 選択肢データ
+    const data = {
+      treble: ["ド", "レ", "ミ", "ファ", "ソ", "ラ", "シ", "ド(高)", "レ(高)", "ミ(高)"],
+      bass: [
+        "ド(低)", "シ(低)", "ラ(低)", "ソ(低)", "ファ(低)",
+        "ミ(低)", "レ(低)", "ド(超低)", "シ(超低)", "ラ(超低)"
+      ],
+      symbols: ["シャープ", "フラット", "クレッシェンド", "デクレッシェンド", "トオンキゴウ", "ヘオンキゴウ", "スタッカート", "シブオンプ", "ハチブオンプ", "シブキュウフ", "ハチブキュウフ", "フォルテ", "フォルテッシモ", "ピアノ", "ピアニッシモ", "アクセント", "ナチュラル"]
+    };
+
+    // 表示名マッピング
+    const displayNameMap = {
+      "ド(低)": "ド",
+      "ド(超低)": "ド(低)"
+    };
+
+    let quizSet = [];
+    let currentIndex = 0;
+    let currentType = "";
+    let score = 0;
+
+    function showScreen(name) {
+      Object.values(screens).forEach(s => s.classList.remove('active'));
+      screens[name].classList.add('active');
+    }
+
+    function startQuiz(type) {
+      currentType = type;
+      const all = data[type];
+      quizSet = shuffle([...all]).slice(0, 10);
+      currentIndex = 0;
+      score = 0;
+      updateScore();
+      showScreen('quiz');
+      showQuestion();
+    }
+
+    function updateScore() {
+      scoreDisplay.textContent = `点数：${score} 点`;
+    }
+
+    function showQuestion() {
+      resultDiv.textContent = "";
+      const correct = quizSet[currentIndex];
+      questionImg.src = `images/${correct}.png`;
+
+      const others = data[currentType].filter(x => x !== correct);
+      const choices = shuffle([correct, ...shuffle(others).slice(0, 4)]);
+
+      choicesDiv.innerHTML = "";
+      choices.forEach(choice => {
+        const btn = document.createElement('button');
+        const displayText = displayNameMap[choice] || choice;
+        btn.textContent = displayText;
+        btn.className = "choice";
+        btn.onclick = () => checkAnswer(choice, correct);
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct) {
+      if (selected === correct) {
+        correctSound.currentTime = 0;
+        correctSound.play();
+        score += 10;
+        updateScore();
+        resultDiv.textContent = "〇";
+        resultDiv.style.color = "red";
+      } else {
+        resultDiv.textContent = "？";
+        resultDiv.style.color = "gray";
+      }
+
+      setTimeout(() => {
+        currentIndex++;
+        if (currentIndex < quizSet.length) {
+          showQuestion();
+        } else {
+          finalScoreDisplay.textContent = `${score} 点を獲得しました！`;
+          showScreen('score');
+          setTimeout(() => showScreen('start'), 4000);
+        }
+      }, 1000);
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+  </script>
+</body>
+</html>
